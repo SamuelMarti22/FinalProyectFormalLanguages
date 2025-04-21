@@ -1,0 +1,7 @@
+3
+S -> S+T T
+T -> T*F F
+F -> (S) i
+a
+ad
+e
