@@ -9,9 +9,24 @@ ad
 e
 
 3
+S -> A B
+A -> a e
+B -> b
+aa
+b
+
+3
+D -> aA aB
+A -> c
+B -> d
+a
+e
+
+3
 S -> S+T T
 T -> T*F F
 F -> (S) i
 a
 ad
 e
+
