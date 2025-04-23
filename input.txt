@@ -1,3 +1,13 @@
+5
+E -> TA
+A -> +TA e
+T -> FB
+B -> *FB e
+F -> (E) i
+a
+ad
+e
+
 3
 S -> S+T T
 T -> T*F F
