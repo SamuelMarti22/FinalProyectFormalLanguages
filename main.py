@@ -1,4 +1,5 @@
 from Rule import Rule
+from State import State
 import pandas as pd
 
 
@@ -80,6 +81,27 @@ def construccionTablaLL(diccFirst, diccFollow,regla):
         for i in range(len(regla.get_first())):
             parsingTableLL[(regla.get_simbolo_produccion(), regla.get_first()[i])] = regla.get_produccion()
 
+def searchRules(rules, symbol):
+    for i in rules:
+        listaReturn = []
+        if i.get_simbolo_produccion() == symbol:
+            x = Rule(symbol,"."+i.get_produccion())
+            if x.get_produccion()[1] in noTerminales:
+                listaReturn.append(x)
+                listaReturn.extend(searchRules(rules, x.get_produccion()[1]))
+                return listaReturn
+            else:
+                listaReturn.append(x)
+                return listaReturn
+
+def createStateSRL(state):
+    
+    # Implementación de la función para crear el estado SLR
+    print("Aun no, ahorita mañana")
+
+def construccionTablaSLR(diccFollow, regla):
+    print("Aun no, ahorita mañana")
+
 def print_parsing_table(parsingTableLL):
     # Filas y columnas
     filas = sorted({k[0] for k in parsingTableLL})
@@ -95,8 +117,6 @@ def print_parsing_table(parsingTableLL):
 
     # Imprimir con líneas
     print(df.to_markdown(tablefmt="grid"))
-    
-    
 
 reglas = []
 strings = []
@@ -105,8 +125,7 @@ noTerminales = []
 flagLL= True
 flagSLR= True
 parsingTableLL = {}
-
-
+parsingTableSLR = {}
 
 with open("input.txt", "r") as archivo:
     # 1. Leer cuántas reglas hay
@@ -191,6 +210,18 @@ if flagLL:
     print("Construir table")
     for i in range(len(reglas)):
         construccionTablaLL(diccFirst,diccFollow,reglas[i])
+
+reglaInicial = Rule(primero+"'","."+primero)
+inicial = State(0,[reglaInicial])
+
+hola = searchRules(reglas, primero)
+
+for i in hola:
+    print(f"Simbolo de produccion: {i.get_simbolo_produccion()}")
+    print(f"Produccion: {i.get_produccion()}")
+
+print()
+
 print("Terminales:")
 print(terminales)
 print("No terminales:")
