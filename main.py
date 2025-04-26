@@ -93,11 +93,64 @@ def searchRules(rules, symbol):
             else:
                 listaReturn.append(x)
                 return listaReturn
+            
+def movePoint(regla):
+    listaReglas = []
+    produccion = regla.get_produccion()
+    posicionPunto = regla.get_produccion().index(".")
+    newProduction = produccion[:posicionPunto] + "." + produccion[posicionPunto+1:]
+    print("Nueva",newProduction)
+    newSymbol = newProduction[newProduction.index(".")+1]
+    newRule = Rule(regla.get_simbolo_produccion(),newProduction)
+    listaReglas.append(newRule)
+    if newSymbol in noTerminales:
+        listaReglas.extend(searchRules(reglas,newSymbol))
+    return listaReglas
 
-def createStateSRL(state):
+def createStateSRL(state,numeroEstado):
+    producciones = state.get_set_rules().copy()
+    i=0 #>:c
+    while i  < len(producciones):
+        print("Producciones de createStateSRL",len(producciones))
+        SLRStates = []
+        posicionPunto = producciones[i].get_produccion().index(".")
+        if posicionPunto == len(producciones[i].get_produccion())-1:
+            print("Ya el punto está al final")
+            producciones.remove(producciones[i])
+        else:
+            symbolTransition = producciones[i].get_produccion()[posicionPunto+1]
+            listaSiguiente = identify_point(producciones,symbolTransition)
+            producciones[:] = [x for x in producciones if x not in listaSiguiente]
+            puntosMovidos = []
+            for pm in range(len(listaSiguiente)):
+                puntosMovidos.extend(movePoint(listaSiguiente[pm]))
+            numeroEstado += 1
+            newState = State(numeroEstado,puntosMovidos)
+            for i in newState.get_set_rules():
+                print(i.get_simbolo_produccion(),i.get_produccion())
+
+            SLRStates.extend(createStateSRL(newState,numeroEstado))
+    return SLRStates
+
+
+        
+        
+    #llegamos le pasamos un estado y vamos a mirar el punto en cada produccion, sacamos todas las que lo tengan a un vector aparte 
+    # movemos esas reglas y las agregamos en el nuevo estado, despues seguimos buscando en las reglas que quedaron con que otros estados se puede mover hasta que la lista quede vacia
+    # Idea: poner un vector que guarde los simbolos con los que ya se traslado
+    
+    
     
     # Implementación de la función para crear el estado SLR
     print("Aun no, ahorita mañana")
+
+def identify_point(producciones, symbolTransition):
+    reglasCumple = []
+    for i in producciones:
+        posicion = i.get_produccion().index(".")
+        if i.get_produccion()[posicion+1] == symbolTransition:
+            reglasCumple.append(i)
+    return reglasCumple
 
 def construccionTablaSLR(diccFollow, regla):
     print("Aun no, ahorita mañana")
@@ -108,15 +161,15 @@ def print_parsing_table(parsingTableLL):
     columnas = sorted({k[1] for k in parsingTableLL})
 
     # Crear DataFrame
-    df = pd.DataFrame('', index=filas, columns=columnas)
-    for (fila, col), valor in parsingTableLL.items():
-        df.at[fila, col] = valor
+    #df = pd.DataFrame('', index=filas, columns=columnas)
+    #for (fila, col), valor in parsingTableLL.items():
+        #df.at[fila, col] = valor
 
     # Reemplazar celdas vacías con '-'
-    df.replace('', '-', inplace=True)
+    #df.replace('', '-', inplace=True)
 
     # Imprimir con líneas
-    print(df.to_markdown(tablefmt="grid"))
+    #print(df.to_markdown(tablefmt="grid"))
 
 reglas = []
 strings = []
@@ -126,6 +179,8 @@ flagLL= True
 flagSLR= True
 parsingTableLL = {}
 parsingTableSLR = {}
+SLRStates = []
+numeroEstado = 0
 
 with open("input.txt", "r") as archivo:
     # 1. Leer cuántas reglas hay
@@ -211,14 +266,20 @@ if flagLL:
     for i in range(len(reglas)):
         construccionTablaLL(diccFirst,diccFollow,reglas[i])
 
+#Construccion de tabla para SLR(1)
+
+
+#Creación manual del estado 0
 reglaInicial = Rule(primero+"'","."+primero)
-inicial = State(0,[reglaInicial])
+inicialProduccion = searchRules(reglas, primero)
+inicialProduccion.insert(0,reglaInicial)
+inicial = State(0,inicialProduccion)
 
-hola = searchRules(reglas, primero)
-
-for i in hola:
+for i in inicialProduccion:
     print(f"Simbolo de produccion: {i.get_simbolo_produccion()}")
     print(f"Produccion: {i.get_produccion()}")
+
+listaEstadosResultantes = createStateSRL(inicial,numeroEstado)
 
 print()
 
