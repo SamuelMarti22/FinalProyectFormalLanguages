@@ -1,6 +1,7 @@
+import pandas as pd
+
 from Rule import Rule
 from State import State
-import pandas as pd
 
 
 def print_rules(rules):
@@ -21,10 +22,6 @@ def identify_terminal(production):
 
 def first(production,diccFirst,flagLL):
     # Implementación de la función first
-    print("Diccionario")
-    print(diccFirst)
-    
-    print("Calculando FIRST")
     simbolo = production.get_produccion()[0]
 
     if simbolo == production.get_simbolo_produccion():
@@ -40,7 +37,6 @@ def first(production,diccFirst,flagLL):
             else:
                 flagLL = False
         else:
-            print("Simbolo no terminal")
             production.set_first(diccFirst[simbolo])
             if simbolo not in diccFirst[production.get_simbolo_produccion()]:
                 diccFirst[production.get_simbolo_produccion()].extend(diccFirst[simbolo])
@@ -52,9 +48,11 @@ def follow(diccFollow,noTerminal):
         if noTerminal in reglas[i].get_produccion():
             posicion = reglas[i].get_produccion().index(noTerminal)
             if posicion == len(reglas[i].get_produccion())-1:
-                if diccFollow[reglas[i].get_simbolo_produccion()] != [] and diccFollow[reglas[i].get_simbolo_produccion()] != ["$"]:
+                if reglas[i].get_simbolo_produccion() == noTerminal:
                     diccFollow[noTerminal].extend(diccFollow[reglas[i].get_simbolo_produccion()])
-                else:
+                elif diccFollow[reglas[i].get_simbolo_produccion()] != [] and diccFollow[reglas[i].get_simbolo_produccion()] != ["$"]:
+                    diccFollow[noTerminal].extend(diccFollow[reglas[i].get_simbolo_produccion()])
+                elif reglas[i].get_simbolo_produccion() != noTerminal:
                     diccFollow[noTerminal].extend(follow(diccFollow, reglas[i].get_simbolo_produccion()))
                 diccFollow[noTerminal] = list(set(diccFollow[noTerminal]))
             elif reglas[i].get_produccion()[posicion+1] in terminales:
@@ -82,78 +80,132 @@ def construccionTablaLL(diccFirst, diccFollow,regla):
             parsingTableLL[(regla.get_simbolo_produccion(), regla.get_first()[i])] = regla.get_produccion()
 
 def searchRules(rules, symbol):
+    listaReturn = []
     for i in rules:
-        listaReturn = []
         if i.get_simbolo_produccion() == symbol:
             x = Rule(symbol,"."+i.get_produccion())
             if x.get_produccion()[1] in noTerminales:
                 listaReturn.append(x)
-                listaReturn.extend(searchRules(rules, x.get_produccion()[1]))
-                return listaReturn
+                if i.get_produccion()[0] != symbol:
+                    listaReturn.extend(searchRules(rules, x.get_produccion()[1]))
             else:
                 listaReturn.append(x)
-                return listaReturn
-            
+    return listaReturn
+
 def movePoint(regla):
     listaReglas = []
     produccion = regla.get_produccion()
     posicionPunto = regla.get_produccion().index(".")
-    newProduction = produccion[:posicionPunto] + "." + produccion[posicionPunto+1:]
-    print("Nueva",newProduction)
-    newSymbol = newProduction[newProduction.index(".")+1]
+    newProduction = produccion[:posicionPunto] + produccion[posicionPunto+1] + "." + produccion[posicionPunto+2:]
+    try:
+        posicionPunto = newProduction.index(".")
+        newSymbol = newProduction[posicionPunto + 1]
+        if newSymbol in noTerminales:
+            listaReglas.extend(searchRules(reglas,newSymbol))
+    except ValueError:
+        newSymbol = None
+    except IndexError:
+        newSymbol = None
     newRule = Rule(regla.get_simbolo_produccion(),newProduction)
     listaReglas.append(newRule)
-    if newSymbol in noTerminales:
-        listaReglas.extend(searchRules(reglas,newSymbol))
     return listaReglas
-
-def createStateSRL(state,numeroEstado):
-    producciones = state.get_set_rules().copy()
-    i=0 #>:c
-    while i  < len(producciones):
-        print("Producciones de createStateSRL",len(producciones))
-        SLRStates = []
-        posicionPunto = producciones[i].get_produccion().index(".")
-        if posicionPunto == len(producciones[i].get_produccion())-1:
-            print("Ya el punto está al final")
-            producciones.remove(producciones[i])
-        else:
-            symbolTransition = producciones[i].get_produccion()[posicionPunto+1]
-            listaSiguiente = identify_point(producciones,symbolTransition)
-            producciones[:] = [x for x in producciones if x not in listaSiguiente]
-            puntosMovidos = []
-            for pm in range(len(listaSiguiente)):
-                puntosMovidos.extend(movePoint(listaSiguiente[pm]))
-            numeroEstado += 1
-            newState = State(numeroEstado,puntosMovidos)
-            for i in newState.get_set_rules():
-                print(i.get_simbolo_produccion(),i.get_produccion())
-
-            SLRStates.extend(createStateSRL(newState,numeroEstado))
-    return SLRStates
-
-
-        
-        
-    #llegamos le pasamos un estado y vamos a mirar el punto en cada produccion, sacamos todas las que lo tengan a un vector aparte 
-    # movemos esas reglas y las agregamos en el nuevo estado, despues seguimos buscando en las reglas que quedaron con que otros estados se puede mover hasta que la lista quede vacia
-    # Idea: poner un vector que guarde los simbolos con los que ya se traslado
-    
-    
-    
-    # Implementación de la función para crear el estado SLR
-    print("Aun no, ahorita mañana")
 
 def identify_point(producciones, symbolTransition):
     reglasCumple = []
     for i in producciones:
         posicion = i.get_produccion().index(".")
-        if i.get_produccion()[posicion+1] == symbolTransition:
-            reglasCumple.append(i)
+        if posicion < len(i.get_produccion())-1:
+            if i.get_produccion()[posicion+1] == symbolTransition:
+                reglasCumple.append(i)
+    for i in reglasCumple:
+        producciones.remove(i)
     return reglasCumple
 
-def construccionTablaSLR(diccFollow, regla):
-    print("Aun no, ahorita mañana")
+def createStateSRL(state):
+    global numeroEstado
+    pilaEstados = []
+    pilaEstados.append(state)
+    i = 0
+    SLRStates = []
+    while not pilaEstados == []:
+        stateActual = pilaEstados.pop(0)
+        producciones = stateActual.get_set_rules().copy()
+        while i < len(producciones):
+            posicionPunto = producciones[i].get_produccion().index(".")
+            if posicionPunto == len(producciones[i].get_produccion())-1:
+                producciones.remove(producciones[i])
+            else:
+                symbolTransition = producciones[i].get_produccion()[posicionPunto+1]
+                listaSiguiente = identify_point(producciones,symbolTransition)
+                puntosMovidos = []
+                reglasMovidas = []
+                for pm in range(len(listaSiguiente)):
+                    puntosMovidos.extend(movePoint(listaSiguiente[pm]))
+                for j in puntosMovidos:
+                    reglasMovidas.append(j.get_produccion())
+                if  any(set(reglasMovidas) == set(movimiento[1]) for movimiento in movimientosHechos):
+                    for movimiento in movimientosHechos:
+                        if set(reglasMovidas) == set(movimiento[1]):
+                            numeroEstadoPrevio = movimiento[0]
+                            break
+                    if symbolTransition in noTerminales:
+                        parsingTableSLR[(stateActual.get_number_state(), symbolTransition)] = numeroEstadoPrevio
+                    else:
+                        parsingTableSLR[(stateActual.get_number_state(), symbolTransition)] = f"d{numeroEstadoPrevio}"
+                else:
+                    newState = State(numeroEstado,puntosMovidos)
+                    movimientosHechos.append([numeroEstado,reglasMovidas])
+                    newState.set_previus_state(stateActual.get_number_state())
+                    newState.set_symbol(symbolTransition)
+                    SLRStates.append(newState)
+                    pilaEstados.append(newState)
+                    numeroEstado+=1
+    return SLRStates
+
+def printStates(listaEstadosResultantes,tamano):
+    for i in listaEstadosResultantes[:tamano]:
+        print(f"Estado {i.get_number_state()}: {i.get_previus_state()} -> {i.get_symbol()}")
+        for j in i.get_set_rules():
+            print(j.get_simbolo_produccion(),"->",j.get_produccion())
+
+
+
+def construccionTablaSLR(diccFollow, listaEstadosResultantes):
+    global flagSLR
+    for i in listaEstadosResultantes:
+        if i.get_symbol() in noTerminales:
+            if (i.get_previus_state(), i.get_symbol()) not in parsingTableSLR:
+                parsingTableSLR[(i.get_previus_state(), i.get_symbol())] = i.get_number_state()
+            else:
+                flagSLR = False
+        else:
+            if (i.get_previus_state(), i.get_symbol()) not in parsingTableSLR:
+                parsingTableSLR[(i.get_previus_state(), i.get_symbol())] = f"d{i.get_number_state()}"
+            else:
+                flagSLR = False
+        for j in i.get_set_rules():
+            if j.get_produccion()[-1] == ".":
+                reglaFinal = j.get_produccion().rstrip(".")
+                for k in reglas:
+                    if reglaFinal == k.get_produccion():
+                        for l in diccFollow[k.get_simbolo_produccion()]:
+                            if (i.get_number_state(), l) not in parsingTableSLR:
+                                parsingTableSLR[(i.get_number_state(),l)] = f"r{reglas.index(k)}"
+                            else:
+                                flagSLR = False
+                            
+def createHistory()
+    
+def processSLR (string):
+    if stack == 1 and string == "$":
+        flagProcessSLR = True
+        return flagProcessSLR
+    charProcess = string[0]
+    resultTable = parsingTableSLR[stack[-1],charProcess]
+
+    
+    
+
 
 def print_parsing_table(parsingTableLL):
     # Filas y columnas
@@ -173,14 +225,26 @@ def print_parsing_table(parsingTableLL):
 
 reglas = []
 strings = []
-terminales = []
+terminales = ['$']
 noTerminales = []
 flagLL= True
 flagSLR= True
 parsingTableLL = {}
 parsingTableSLR = {}
 SLRStates = []
-numeroEstado = 0
+numeroEstado = 1
+listaEstadosResultantes = []
+movimientosHechos = []
+
+stack = []
+symbolHistory = []
+inputHistory = []
+actionHistory = []
+stack = [0]
+processedSymbols = []
+flagProcessSLR = False
+
+
 
 with open("input.txt", "r") as archivo:
     # 1. Leer cuántas reglas hay
@@ -209,7 +273,6 @@ with open("input.txt", "r") as archivo:
             rule = Rule(partes[0], partes[1][j])
             reglas.append(rule)
 
-
     # 3. Leer los strings hasta encontrar "e"
     for linea in archivo:
         linea = linea.strip()+"$"
@@ -233,20 +296,13 @@ for i in range(len(noTerminales)):
 
 for i in range (len(reglas)-1,-1,-1):
     flagLL=first(reglas[i],diccFirst,flagLL)
-    print(f"Simbolo de produccion: {reglas[i].get_simbolo_produccion()}")
-    print(f"Produccion: {reglas[i].get_produccion()}")
-    print(f"First: {reglas[i].get_first()}")
-    print()
 
+print("Diccionario FIRST:")
+print(diccFirst)
 
 for simbolo in noTerminales:
     if diccFollow[simbolo] == [] or diccFollow[simbolo] == ["$"]:
         follow(diccFollow, simbolo)
-        print()
-    print(f"Simbolo de produccion: {simbolo}")
-    print(f"First: {diccFirst[simbolo]}")
-    print(f"Follow: {diccFollow[simbolo]}")
-    print()
 
 #Revisar LL(1)
 if not flagLL:
@@ -262,27 +318,21 @@ else:
                         break
 
 if flagLL:
-    print("Construir table")
     for i in range(len(reglas)):
         construccionTablaLL(diccFirst,diccFollow,reglas[i])
 
 #Construccion de tabla para SLR(1)
-
 
 #Creación manual del estado 0
 reglaInicial = Rule(primero+"'","."+primero)
 inicialProduccion = searchRules(reglas, primero)
 inicialProduccion.insert(0,reglaInicial)
 inicial = State(0,inicialProduccion)
-
-for i in inicialProduccion:
-    print(f"Simbolo de produccion: {i.get_simbolo_produccion()}")
-    print(f"Produccion: {i.get_produccion()}")
-
-listaEstadosResultantes = createStateSRL(inicial,numeroEstado)
-
-print()
-
+parsingTableSLR[(1, "$")] = "accept"
+listaEstadosResultantes.extend(createStateSRL(inicial))
+tamano=len(listaEstadosResultantes)
+print("ListaEstados:", len(listaEstadosResultantes))
+printStates(listaEstadosResultantes,tamano)
 print("Terminales:")
 print(terminales)
 print("No terminales:")
@@ -293,3 +343,8 @@ print("Diccionario FOLLOW:")
 print(diccFollow)
 print("Tabla LL(1):")
 print_parsing_table(parsingTableLL)
+print("Tabla SLR(1):")
+construccionTablaSLR(diccFollow, listaEstadosResultantes)
+print(parsingTableSLR)
+print("Es LL(1)? ", flagLL)
+print("Es SLR? ", flagSLR)

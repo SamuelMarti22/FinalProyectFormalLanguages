@@ -9,6 +9,20 @@ ad
 e
 
 3
+E -> E+T T
+T -> T*F F
+F -> (E) i
+a
+ad
+e
+
+2
+S -> A
+A -> A b
+a
+e
+
+3
 S -> A B
 A -> a e
 B -> b
@@ -21,12 +35,3 @@ A -> c
 B -> d
 a
 e
-
-3
-S -> S+T T
-T -> T*F F
-F -> (S) i
-a
-ad
-e
-
