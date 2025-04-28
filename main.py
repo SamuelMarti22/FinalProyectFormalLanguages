@@ -142,10 +142,10 @@ def createStateSRL(state):
                 for pm in range(len(listaSiguiente)):
                     puntosMovidos.extend(movePoint(listaSiguiente[pm]))
                 for j in puntosMovidos:
-                    reglasMovidas.append(j.get_produccion())
-                if  any(set(reglasMovidas) == set(movimiento[1]) for movimiento in movimientosHechos):
+                    reglasMovidas.append([j.get_simbolo_produccion(),j.get_produccion()])
+                if  any(set(tuple(r) for r in reglasMovidas) == set(tuple(r) for r in movimiento[1]) for movimiento in movimientosHechos):
                     for movimiento in movimientosHechos:
-                        if set(reglasMovidas) == set(movimiento[1]):
+                        if set(tuple(r) for r in reglasMovidas) == set(tuple(r) for r in movimiento[1]):
                             numeroEstadoPrevio = movimiento[0]
                             break
                     if symbolTransition in noTerminales:
@@ -189,23 +189,85 @@ def construccionTablaSLR(diccFollow, listaEstadosResultantes):
                 for k in reglas:
                     if reglaFinal == k.get_produccion():
                         for l in diccFollow[k.get_simbolo_produccion()]:
-                            if (i.get_number_state(), l) not in parsingTableSLR:
+                            if (i.get_number_state(), l) not in parsingTableSLR or reglaFinal == "e":
                                 parsingTableSLR[(i.get_number_state(),l)] = f"r{reglas.index(k)}"
                             else:
+                                print("Ambiguedad")
+                                print(f"Ambiguedad en el estado {i.get_number_state()} con la regla {k.get_simbolo_produccion()} -> {k.get_produccion()}")
                                 flagSLR = False
-                            
-def createHistory()
-    
-def processSLR (string):
-    if stack == 1 and string == "$":
+
+def createHistoriesSLR(actionSymbol,stackSLRSymbol,inputSymbol,simbolsSymbol):
+    actionHistory.append(actionSymbol)
+    symbolHistory.append(simbolsSymbol)
+    inputHistory.append(inputSymbol)
+    stackSLRHistory.append(stackSLRSymbol)
+
+
+def processSLR (string,stackSLR,processedSymbols,flagProcessSLR):
+    if stackSLR[-1] == 1 and string == "$":
+        print("Entre para retornar")
         flagProcessSLR = True
         return flagProcessSLR
-    charProcess = string[0]
-    resultTable = parsingTableSLR[stack[-1],charProcess]
-
+    try:
+        action = parsingTableSLR[stackSLR[-1],string[0]]
+    except KeyError:
+        print("Entro al except")
+        return flagProcessSLR
     
-    
+    if action[0] == "d":
+            processedSymbols.append(string[0])
+            newString = string[1:]
+            stackSLR.append(int(action[1]))
+            createHistoriesSLR(action,stackSLR,newString,processedSymbols)
+            return processSLR(newString,stackSLR,processedSymbols,flagProcessSLR)
 
+    if action[0] == "r":
+        ruleReducce = reglas[int(action[1])]
+        lengthRule = len(ruleReducce.get_produccion())
+        if len(processedSymbols) == lengthRule:
+            processedSymbols.clear()
+        else:
+            processedSymbols = processedSymbols[:(len(processedSymbols)-lengthRule-1)]
+        processedSymbols.append(ruleReducce.get_simbolo_produccion())
+        newString = string
+        stackSLR = stackSLR[:(len(stackSLR)-lengthRule)]
+        try:
+            stackSLR.append(parsingTableSLR[stackSLR[-1],processedSymbols[-1]])
+        except KeyError:
+            return flagProcessSLR
+        createHistoriesSLR(action,stackSLR,newString,processedSymbols)
+        return processSLR(newString,stackSLR,processedSymbols,flagProcessSLR)
+
+def createHistoriesLL(stackSLRSymbol,inputSymbol):  
+    inputHistory.append(inputSymbol)
+    stackSLRHistory.append(stackSLRSymbol)
+
+def processLL(string,flagProcessLL):
+    if stackLL[-1] == "$" and string == "$":
+        print("Cadena aceptada")
+        stackLL.pop(0)
+        flagProcessLL = True
+        return flagProcessLL
+    if stackLL[-1] == string[0]:
+        string = string[1:]
+        stackLL.pop(-1)
+        createHistoriesLL(stackLL,string)
+        return processLL(string,flagProcessLL)
+    else:
+        try:
+            addStack = parsingTableLL[stackLL[-1],string[0]]
+        except KeyError:
+            print("No esta aceptada")
+            return flagProcessLL
+        stackLL.pop(-1)
+        addStack=addStack[::-1]
+        stackLL.extend(addStack)
+        if addStack[-1] == "e":
+            stackLL.pop(-1)
+            createHistoriesLL(stackLL,string)
+            return processLL(string,flagProcessLL)
+        else:
+            return processLL(string,flagProcessLL)
 
 def print_parsing_table(parsingTableLL):
     # Filas y columnas
@@ -236,13 +298,18 @@ numeroEstado = 1
 listaEstadosResultantes = []
 movimientosHechos = []
 
-stack = []
+stackSLR = []
 symbolHistory = []
 inputHistory = []
 actionHistory = []
-stack = [0]
+stackSLRHistory = []
+stackSLR = [0]
 processedSymbols = []
 flagProcessSLR = False
+flagProcessLL = False
+
+stackLL = []
+
 
 
 
@@ -297,9 +364,6 @@ for i in range(len(noTerminales)):
 for i in range (len(reglas)-1,-1,-1):
     flagLL=first(reglas[i],diccFirst,flagLL)
 
-print("Diccionario FIRST:")
-print(diccFirst)
-
 for simbolo in noTerminales:
     if diccFollow[simbolo] == [] or diccFollow[simbolo] == ["$"]:
         follow(diccFollow, simbolo)
@@ -330,9 +394,7 @@ inicialProduccion.insert(0,reglaInicial)
 inicial = State(0,inicialProduccion)
 parsingTableSLR[(1, "$")] = "accept"
 listaEstadosResultantes.extend(createStateSRL(inicial))
-tamano=len(listaEstadosResultantes)
-print("ListaEstados:", len(listaEstadosResultantes))
-printStates(listaEstadosResultantes,tamano)
+
 print("Terminales:")
 print(terminales)
 print("No terminales:")
@@ -348,3 +410,42 @@ construccionTablaSLR(diccFollow, listaEstadosResultantes)
 print(parsingTableSLR)
 print("Es LL(1)? ", flagLL)
 print("Es SLR? ", flagSLR)
+
+if (flagLL and flagSLR):
+    print("Es ambos")
+elif flagLL:
+    print("Es LL(1)")
+elif flagSLR:
+    print("Es SLR(1)")
+else:
+    print("No es ninguno")
+
+validatedString = processSLR("ad$",stackSLR,processedSymbols,flagProcessSLR)
+for i in range(len(stackSLRHistory)):
+    print(".",stackSLRHistory[i],symbolHistory[i],inputHistory[i],actionHistory[i])
+
+if validatedString:
+    print("The String is belong in the grammar")
+else:
+    print("The string not is belong in the grammar")
+
+print("Procesar con LL")
+stackLL = ["$"]
+stackLL.append(primero)
+print(processLL("aadbbcc$",flagProcessLL))
+for i in range(len(stackSLRHistory)):
+    print(".",stackSLRHistory[i],inputHistory[i])
+
+if flagLL and flagSLR:
+    print("Es ambos")
+elif flagLL:
+    print("Es LL(1)")
+elif flagSLR:
+    print("Es SLR(1)")
+else:
+    print("No es ninguno")
+
+
+#Procesar una cadena
+processString = "aaa"
+#processSLR(processString)
