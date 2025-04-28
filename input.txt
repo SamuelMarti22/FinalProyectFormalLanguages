@@ -1,23 +1,18 @@
 3
-D -> aA aB
-A -> c
-B -> d
-a
-e
-
-3
 S -> AB
 A -> aA d
 B -> bBc e
-a
+adbc
+adb
+aaadbbcc
 e
 
 3
 E -> E+T T
 T -> T*F F
 F -> (E) i
-a
-ad
+i+(i*i)
+i++i
 e
 
 5
@@ -26,8 +21,15 @@ A -> +TA e
 T -> FB
 B -> *FB e
 F -> (E) i
+i+(i*i)
+i++i
+e
+
+3
+D -> aA aB
+A -> c
+B -> d
 a
-ad
 e
 
 2

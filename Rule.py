@@ -4,10 +4,10 @@ class Rule:
         self.produccion = producion
         self.first = None
 
-    def get_simbolo_produccion(self):
+    def get_production_symbol(self):
         return self.simboloProduccion
 
-    def get_produccion(self):
+    def get_production(self):
         return self.produccion
 
     def get_first(self):
