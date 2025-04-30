@@ -19,7 +19,7 @@ In this assignment, the step-by-step process of analyzing a set of strings using
 
 ## Team 👥
 
-- **Team Members**: [List your team members here]
+- **Team Members**: Laura Andrea Castrillón Fajardo - Samuel Martínez Arteaga
 
 ## Development Environment 🖥️
 
