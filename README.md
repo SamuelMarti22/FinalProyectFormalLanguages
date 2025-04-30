@@ -13,7 +13,7 @@ In this assignment, the step-by-step process of analyzing a set of strings using
 - [SLR(1) Bottom-Up Parser 🔽](#slr1-bottom-up-parser)
     - [Explanation of the Parser 📚](#explanation-of-the-parser-1)
     - [Code for Developing It 🧑‍💻](#code-for-developing-it-1)
-- [Code for Developing It 🧑‍💻](#code-for-developing-it-1)
+- [General Code 🧑‍💻](#general-code)
 
 ---
 
