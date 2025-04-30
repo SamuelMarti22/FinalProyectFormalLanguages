@@ -553,3 +553,94 @@ def createHistoriesSLR(actionSymbol,stackSLRSymbol,inputSymbol,simbolsSymbol):
     inputHistory.append(inputSymbol)
     stackSLRHistory.append(list(stackSLRSymbol))
 ```
+
+
+## General Code
+
+We import the necessary libraries to ensure the proper functioning of the program, including tools for data handling and graph generation such as pandas and graphviz.
+
+```
+from graphviz import Diagraph
+import pandas as pd
+from Rule import Rule
+from State import State
+```
+We define a function to display information in a table format using pandas, which helps visualize parsing tables or grammars in a clear and structured way.
+```
+def print_parsing_table(parsingTable):
+    #rows y columns
+    rows = sorted({k[0] for k in parsingTable})
+    columns = sorted({k[1] for k in parsingTable})
+    #Crear DataFrame
+    df = pd.DataFrame('', index=rows, columns=columns)
+    for (fila, col), valor in parsingTable.items():
+        df.at[fila, col] = valor
+    #Reemplazar celdas vacías con '-'
+    df.replace('', '-', inplace=True)
+    #Imprimir con líneas
+    print(df.to_markdown(tablefmt="grid"))
+```
+
+We use Graphviz to display the syntactic derivation tree, allowing us to visually represent the structure of the parsed input based on the grammar rules.
+
+```
+def dibujar_arbol_LL(rules):
+    dot = Digraph(comment='Árbol de Derivación')
+    for i in range(len(rules)):
+        print(rules[i].get_production_symbol(),rules[i].get_production())
+        if rules[i].get_production_symbol() == startSymbolGrammar and i == 0:
+            for j in range(len(rules[i].get_production())):
+                idNodes.append(rules[i].get_production()[j]+"0")
+        else:
+            j=0
+            symbol = rules[i].get_production_symbol()
+            for j in range(len(idNodes)):
+                try:
+                    if symbol == idNodes[j][0]:
+                        lastSymbolId = idNodes[j]
+                        print("lastSymbolId",lastSymbolId)
+                        if lastSymbolId not in idNodes:
+                            idNodes.append(lastSymbolId)
+                        break
+                except IndexError:
+                    break
+
+            for j in range(len(rules[i].get_production())):
+                flagTree=False
+                symbolProductionId = rules[i].get_production()[j]
+                for k in range(len(idNodes) - 1, -1, -1):
+                    if symbolProductionId == idNodes[k][0]:
+                        lastSymbolProduction = idNodes[k]
+                        symbolProductionId = symbolProductionId + str(int(lastSymbolId[1:]) + 1)
+                        idNodes.append(symbolProductionId)
+                        flagTree=True
+                        break
+                if not flagTree:
+                    idNodes.append(rules[i].get_production()[j]+"0")
+    return idNodes
+
+
+def print_tree_LL(derivationHistory, startSymbolGrammar):
+    dot = Digraph(comment='Árbol de Derivación')
+    derivacion = derivationHistory.copy()
+    repeticion = {startSymbolGrammar: 0}
+    actual = 0
+    for i in derivacion:
+        actual = repeticion[i[0]]
+        for j in i[1]:
+            if j in repeticion:
+                repeticion[j] += 1
+            else:
+                repeticion[j] = 0
+            dot.node(j+str(repeticion[j]), j)
+            if j != i[0]:
+                dot.edge(i[0]+str(actual), j+str(repeticion[j]))
+            else:
+                dot.edge(i[0]+str(actual), j+str(repeticion[j]))
+
+    dot.render('arbol', view=True, format="png")  # Esto crea y abre el archivo
+    print(repeticion)
+    print(derivacion)
+    print("--------------------------------------------------")
+    #Nodos
+```
