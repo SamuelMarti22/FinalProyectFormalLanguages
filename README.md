@@ -13,6 +13,7 @@ In this assignment, the step-by-step process of analyzing a set of strings using
 - [SLR(1) Bottom-Up Parser 🔽](#slr1-bottom-up-parser)
     - [Explanation of the Parser 📚](#explanation-of-the-parser-1)
     - [Code for Developing It 🧑‍💻](#code-for-developing-it-1)
+- [Code for Developing It 🧑‍💻](#code-for-developing-it-1)
 
 ---
 
@@ -340,7 +341,215 @@ $$S \to  iaT | ieT\\newline$$
 $$First(iaT)={i}\\newline$$
 $$First(ieT)={i}\\newline$$
 
-### Code for Developing It 🧑‍💻
+- **No non-determinism**: Non-deterministic rules are not allowed, because the parser can only use **one lookahead symbol** to decide:
 
-Here you would add your code that implements the SLR(1) parsing algorithm.
+$$S \to  aA |aB \\newline$$
+$$A \to  d \\newline$$
+$$B \to  c \\newline$$
 
+### Code for Developing It:  Algorithm Flow for Building an SLR(1) Parser🧑‍💻
+
+This code implements the creation of LR(0) states for an SLR parser. It starts from an initial state and, by shifting the dot (.) over the productions, generates new states based on the symbol that appears after the dot. If a set of moved rules already exists, it reuses the corresponding state number; otherwise, it creates a new state. If the transition symbol is a terminal, a shift action is added to the SLR parsing table. If it's a non-terminal, a goto transition is recorded. It also handles reductions when the next symbol is ε (epsilon).
+
+```
+def createStateSRL(state):
+    #Define the global variable 'numberState' to keep track of the states.
+    global numberState
+    stackStates = []
+    stackStates.append(state)
+    i = 0
+    SLRStates = []
+    #Iterate through the list of states until there are no more states to process.
+    while not stackStates == []:
+        #Take the first state from the list of states.
+        stateActual = stackStates.pop(0)
+        productions = stateActual.get_set_rules().copy()
+        #We iterate through the list of productions to process each production.
+        while i < len(productions):
+            #We get the position of the dot in the production.
+            dotPosition = productions[i].get_production().index(".")
+            #If the dot is at the end of the production, it is considered a reduction and the productions are removed.
+            if dotPosition == len(productions[i].get_production())-1:
+                productions.remove(productions[i])
+            else:
+                #If the dot is not at the end, the symbol following the dot is obtained.
+                symbolTransition = productions[i].get_production()[dotPosition+1]
+                #All the productions that can be moved with that symbol are searched.
+                listnext = identify_dot(productions,symbolTransition)
+                movedDots = []
+                rulesMoved = []
+                #Move the dot in the productions that can be moved.
+                for pm in range(len(listnext)):
+                    movedDots.extend(movedot(listnext[pm]))
+                #We keep track of the movements made (useful for avoiding duplicates and assigning shifts).
+                for j in movedDots:
+                    rulesMoved.append([j.get_production_symbol(),j.get_production()])
+                #If the transition symbol is an e, we directly create a reduction in the table.
+                if symbolTransition == "e":
+                    for k in rules:
+                        if symbolTransition == k.get_production():
+                            for l in diccFollow[k.get_production_symbol()]:
+                                if (stateActual.get_number_state(), l) not in parsingTableSLR:
+                                    parsingTableSLR[(stateActual.get_number_state(),l)] = f"r{rules.index(k)}"
+                #We search if the moved rules are already in the list of completed movements.
+                #If they are, the corresponding state number is assigned for the shift.
+                if  any(set(tuple(r) for r in rulesMoved) == set(tuple(r) for r in movement[1]) for movement in movementsCompleted):
+                    for movement in movementsCompleted:
+                        if set(tuple(r) for r in rulesMoved) == set(tuple(r) for r in movement[1]):
+                            numberStatePrevious = movement[0]
+                            break
+                    #If the transition symbol is a non-terminal, the state number is assigned directly.
+                    #If not, a shift is assigned in the parsing table.
+                    if symbolTransition in nonTerminals:
+                        parsingTableSLR[(stateActual.get_number_state(), symbolTransition)] = numberStatePrevious
+                    else:
+                        parsingTableSLR[(stateActual.get_number_state(), symbolTransition)] = f"d{numberStatePrevious}"
+                else:
+                    #If the movement is not found, a new state is created with the corresponding state number.
+                    #The transition symbol is assigned and added to the list of completed movements.
+                    newState = State(numberState,movedDots)
+                    movementsCompleted.append([numberState,rulesMoved])
+                    newState.set_previus_state(stateActual.get_number_state())
+                    newState.set_symbol(symbolTransition)
+                    SLRStates.append(newState)
+                    stackStates.append(newState)
+                    numberState+=1
+    return SLRStates
+```
+
+-Search for the rules that have a given production symbol:
+```
+#Search for the rules that have a given production symbol.
+def searchRules(rules, symbol):
+    listReturn = []
+    #Iterate over all the rules to find matches with the production symbol.
+    for i in rules:
+        if i.get_production_symbol() == symbol:
+            #Create a new rule with the dot at the beginning of the production.
+            x = Rule(symbol,"."+i.get_production())
+            #If the second symbol of the production is a non-terminal, add the rule and search for more rules recursively.
+            if x.get_production()[1] in nonTerminals:
+                listReturn.append(x)
+                if i.get_production()[0] != symbol:
+                    listReturn.extend(searchRules(rules, x.get_production()[1]))
+            else:
+                #Being a terminal, it only adds the rule, as it does not generate a transition to another.
+                listReturn.append(x)
+    return listReturn
+```
+- Identify dot in each production
+```
+def identify_dot(productions, symbolTransition):
+    rulesRight = []
+    #Iterate over all the productions to find those that have a dot before 'symbolTransition.
+    for i in productions:
+        positionNonTerminal = i.get_production().index(".")
+        #Check if the dot is not at the end and if the next symbol is the transition one.
+        if positionNonTerminal < len(i.get_production())-1:
+            if i.get_production()[positionNonTerminal+1] == symbolTransition:
+                rulesRight.append(i)
+    #Remove the rules that have been added to 'rulesRight' from the list of productions.
+    for i in rulesRight:
+        productions.remove(i)
+    #Return the list of rules that match the symbol transition.
+    return rulesRight
+```
+- Move dot in each production
+```
+def movedot(rule):
+    listrules = []
+    #Get the production of the rule and locate the dot in the production.
+    production = rule.get_production()
+    dotPosition = rule.get_production().index(".")
+    #Create a new production by moving the dot one position forward.
+    newProduction = production[:dotPosition] + production[dotPosition+1] + "." + production[dotPosition+2:]
+    #Try to find the new symbol after the dot and search for more rules recursively if it is a non-terminal
+    try:
+        dotPosition = newProduction.index(".")
+        newSymbol = newProduction[dotPosition + 1]
+        if newSymbol in nonTerminals:
+            listrules.extend(searchRules(rules,newSymbol))
+    except ValueError:
+        #If no dot is found, None is assigned to the new symbol.
+        newSymbol = None
+    except IndexError:
+        #If the index is out of range, None is assigned to the new symbol.
+        newSymbol = None
+    #Create a new rule with the modified production and add it to the list of rules that make up each state.
+    newRule = Rule(rule.get_production_symbol(),newProduction)
+    listrules.append(newRule)
+    return listrules
+```
+
+
+This code constructs the **SLR parsing table** by analyzing the states generated by the LR(0) automaton. It iterates through each transition and, depending on whether the symbol is a **terminal or non-terminal**, it adds an action (shift or transition) to the parsing table. It also identifies the rules where the **dot is at the end of the production** to generate **reduction actions**, based on the **Follow set** of the corresponding non-terminal. If an action already exists in the table cell, ambiguity is detected and `flagSLR` is set to `False`.
+
+```
+def SLRTableConstruction(diccFollow, listStatesResultant):
+    global flagSLR
+    # Iterates over each state in the list of resulting states.
+    for i in listStatesResultant:
+        # If the symbol is a non-terminal, a transition or action is added to the parsing table.
+        if i.get_symbol() in nonTerminals:
+            # If the symbol is a non-terminal, the state number is assigned directly.
+            if (i.get_previus_state(), i.get_symbol()) not in parsingTableSLR:
+                parsingTableSLR[(i.get_previus_state(), i.get_symbol())] = i.get_number_state()
+            # If the transition already exists (i.e., there is already a shift or action for that state and symbol), it is marked as ambiguity.
+            else:
+                flagSLR = False
+        else:
+            # If the symbol is a terminal, a shift is added to the parsing table.
+            if (i.get_previus_state(), i.get_symbol()) not in parsingTableSLR:
+                parsingTableSLR[(i.get_previus_state(), i.get_symbol())] = f"d{i.get_number_state()}"
+            else:
+            # If the transition already exists (i.e., there is already a shift or action for that state and symbol), it is marked as ambiguity.
+                flagSLR = False
+
+        #We start reviewing the rules that have the dot at the end of the production.
+        for j in i.get_set_rules():
+            if j.get_production()[-1] == ".":
+                ruleFinal = j.get_production().rstrip(".")
+                for k in rules:
+                    if ruleFinal == k.get_production():
+                        #If the production is equal to the rule, a reduction action is created with the index of it.
+                        for l in diccFollow[k.get_production_symbol()]:
+                            if (i.get_number_state(), l) not in parsingTableSLR:
+                                parsingTableSLR[(i.get_number_state(),l)] = f"r{rules.index(k)}"
+                            # If the action already exists (i.e., there is already a shift or action for that state and symbol), it is marked as ambiguity.
+                            else:
+                                print(f"Ambiguity in the State {i.get_number_state()} with the rule {k.get_production_symbol()} -> {k.get_production()}")
+                                flagSLR = False
+```
+This code snippet implements the SLR string validation process. The algorithm starts with a parsing stack and an input string. At each step, it checks the SLR parsing table using the current top state of the stack and the first symbol of the input. If it finds a shift action, it consumes the symbol, adds it to the list of processed symbols, updates the stack with the new state, and continues recursively. The process successfully ends if it reaches an accepting state (state 1 and symbol $). If no valid action is found, the string is rejected.
+
+```
+#Process of validating a string using SLR.
+def processSLR (string,stackSLR,processedSymbols,flagProcessSLR):
+    # Acceptance case: If the stack contains the value 1 and the string is the end symbol '$', the process ends successfully.
+    if stackSLR[-1] == 1 and string == "$":
+        flagProcessSLR = True
+        return flagProcessSLR
+    # Try to get the action from the SLR parsing dictionary using the stack and the first symbol of the string.
+    try:
+        action = parsingTableSLR[stackSLR[-1],string[0]]
+    except KeyError:
+        #If not found, return the flag that controls the validation, meaning the string does not belong to the language.
+        return flagProcessSLR
+    
+    #Check if the action is a shift.
+    if action[0] == "d":
+            #Being a shift, the character being processed will be added to processedSymbols, as it has been read.
+            processedSymbols.append(string[0])
+            newString = string[1:] #Remove the shifted character from processedSymbols from the string to process.
+            stackSLR.append(int(action[1:])) #Add the action to the processing stack.
+            createHistoriesSLR(action,stackSLR,newString,processedSymbols)
+            return processSLR(newString,stackSLR,processedSymbols,flagProcessSLR) 
+```
+
+```
+def createHistoriesSLR(actionSymbol,stackSLRSymbol,inputSymbol,simbolsSymbol):
+    actionHistory.append(actionSymbol)
+    symbolHistory.append(list(simbolsSymbol))
+    inputHistory.append(inputSymbol)
+    stackSLRHistory.append(list(stackSLRSymbol))
+```
