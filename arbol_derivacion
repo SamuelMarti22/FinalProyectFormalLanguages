@@ -1,0 +1,12 @@
+// Árbol de Derivación
+digraph {
+	S [label=S]
+	A [label=A]
+	B [label=B]
+	a [label=a]
+	b [label=b]
+	S -> A
+	S -> B
+	A -> a
+	B -> b
+}

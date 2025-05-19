@@ -1,0 +1,19 @@
+// Árbol de Derivación
+digraph {
+	T0 [label=T]
+	E0 -> T0
+	F0 [label=F]
+	T0 -> F0
+	"(0" [label="("]
+	F0 -> "(0"
+	E1 [label=E]
+	F0 -> E1
+	")0" [label=")"]
+	F0 -> ")0"
+	T1 [label=T]
+	E1 -> T1
+	F1 [label=F]
+	T1 -> F1
+	i0 [label=i]
+	F1 -> i0
+}

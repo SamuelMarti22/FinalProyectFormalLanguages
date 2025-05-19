@@ -1,4 +1,42 @@
 3
+E -> E+T T
+T -> T*F F
+F -> (E) i
+i+i
+(i)
+(i+i)*i)
+e
+
+3
+S -> AB
+A -> aA d
+B -> bBc e
+d
+adbc
+a
+e
+
+2
+S -> A
+A -> A b
+
+3
+E -> E+T T
+T -> T*F F
+F -> (E) i
+i+i
+(i)
+(i+i)*i)
+e
+
+
+2
+S -> A
+A -> A b
+a
+e
+
+3
 S -> AB
 A -> aA d
 B -> bBc e
@@ -8,52 +46,18 @@ aaadbbcc
 e
 
 3
-E -> E+T T
-T -> T*F F
-F -> (E) i
-i+(i*i)
-i++i
-e
-
-5
-E -> TA
-A -> +TA e
-T -> FB
-B -> *FB e
-F -> (E) i
-i+(i*i)
-i++i
-e
-
-3
 D -> aA aB
 A -> c
 B -> d
 a
 e
 
-2
-S -> A
-A -> A b
-a
-e
-
-2
-S -> A
-A -> A b
-a
-e
-
-3
-S -> A B
-A -> a e
-B -> b
-aa
-b
-
-3
-D -> aA aB
-A -> c
-B -> d
-a
+6
+S -> SaT
+S -> T
+T -> TbF
+T -> F
+F -> cSd
+F -> z
+abcdz
 e
