@@ -26,8 +26,6 @@ In this assignment, the step-by-step process of analyzing a set of strings using
 - **Tools:** Visual Studio Code, Graphviz
 - **Required Libraries**: Pandas, Graphviz
 
-## Instructions for Running ▶️
-
 ## Instructions for running ▶️🏃‍♂️
 
 - 1. Install pandas. To do this, type the following command in the terminal:
