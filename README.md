@@ -7,6 +7,7 @@ In this assignment, the step-by-step process of analyzing a set of strings using
 - [Team 👥](#team)
 - [Development Environment 🖥️](#development-environment)
 - [Instructions for Running ▶️](#instructions-for-running)
+- [Video running the project ▶️](#video-running-the-project)
 - [LL(1) Top-Down Parser 📝](#ll1-top-down-parser)
     - [Explanation of the Parser 📖](#explanation-of-the-parser)
     - [Code for Developing It 💻](#code-for-developing-it)
@@ -39,6 +40,10 @@ sudo apt-get install graphviz
 pip install graphviz
 ```
 - 3. Run the main file
+ 
+## Video running the project 🧑‍💻
+
+In the following link you will find the explanatory video of the functional code: https://drive.google.com/file/d/1fwQrTOo0MVMP2OyuH7ovXwhJu7evGD0p/view?usp=sharing
  
 ## Prerequisites 
 
