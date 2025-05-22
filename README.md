@@ -7,7 +7,7 @@ In this assignment, the step-by-step process of analyzing a set of strings using
 - [Team 👥](#team)
 - [Development Environment 🖥️](#development-environment)
 - [Instructions for Running ▶️](#instructions-for-running)
-- [Video running the project ▶️](#video-running-the-project)
+- [Video running the project 🧑‍💻](#video-running-the-project)
 - [LL(1) Top-Down Parser 📝](#ll1-top-down-parser)
     - [Explanation of the Parser 📖](#explanation-of-the-parser)
     - [Code for Developing It 💻](#code-for-developing-it)
