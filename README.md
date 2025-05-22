@@ -13,20 +13,11 @@ In this assignment, the step-by-step process of analyzing a set of strings using
 - [SLR(1) Bottom-Up Parser 🔽](#slr1-bottom-up-parser)
     - [Explanation of the Parser 📚](#explanation-of-the-parser-1)
     - [Code for Developing It 🧑‍💻](#code-for-developing-it-1)
-<<<<<<< HEAD
-=======
 - [General Code 🧑‍💻](#general-code)
->>>>>>> 237db5082b5379100767915817e93903f7376ea3
-
----
 
 ## Team 👥
 
-<<<<<<< HEAD
-- **Team Members**: [List your team members here]
-=======
 - **Team Members**: Laura Andrea Castrillón Fajardo - Samuel Martínez Arteaga
->>>>>>> 237db5082b5379100767915817e93903f7376ea3
 
 ## Development Environment 🖥️
 
@@ -50,8 +41,6 @@ sudo apt-get install graphviz
 pip install graphviz
 ```
 - 3. Run the main file
-<<<<<<< HEAD
-=======
  
 ## Prerequisites 
 
@@ -198,7 +187,6 @@ def follow(diccFollow,nonTerminal):
     return diccFollow[nonTerminal] 
 ```
 The follow function constructs the Follow set for a given non-terminal symbol in a grammar. It iterates over the production rules to check if the non-terminal appears in the right-hand side of any rule. If the non-terminal is found at the end of the production, it adds the Follow set of the non-terminal’s production symbol to its own Follow set. If the non-terminal is followed by a terminal symbol, that terminal is added to the Follow set. If followed by another non-terminal, it adds the First set of that non-terminal to the Follow set, handling special cases like epsilon (e) and recursing if necessary. Duplicate elements are removed to ensure unique entries. This process helps build the Follow set for each non-terminal symbol based on the grammar's rules.
->>>>>>> 237db5082b5379100767915817e93903f7376ea3
 
 ## LL(1) Top-Down Parser 📝
 
@@ -206,33 +194,10 @@ The follow function constructs the Follow set for a given non-terminal symbol in
 
 The LL(1) parser is a **top-down** parsing method that reads input from **left to right**, constructing the parse tree from **top to bottom** using **one lookahead symbol** to make decisions.
 
-$$
-\begin{array}{c}
-         S \\
-       / | \ \\
-<<<<<<< HEAD
-      A\ B\ X \\
-    /    \\
- aa\ \ \ aa\ \ bb
-\end{array}
-$$
-
-En el este ejemplo partimos desde el Simbolo incial S, que produce A B X, tomara la izquierda y hará la derivación sintactica posible hasta llegar a un terminal como se ve con aa, después retomara con B y realizará nuevamente el proceso, hasta terminar con cada No terminal previsto, si notamos el flujo va procesando desde la parte superios hasta la inferios de left to right. 
-
-Para poder hacer un LL(1) parser is a **Top-Down** se deben cumplir las siguientes reglas:
-
--Ambiguedades: Una regla de producción no puede tener first iguales
-
-$$S \to  iaT | ieT\\newline$$
-$$First(iaT)={i}\\newline$$
-$$First8ieT={a,b}\\newline$$
-
-
-
 ### Code for Developing It 💻
 
 Here you would add your code that implements the LL(1) parsing algorithm.
-=======
+
       a\ B\ x \\
      |\\
      aa\ \ \ 
@@ -342,7 +307,6 @@ def print_parsing_process_LL(stackSLRHistory, inputHistory, resutlLL):
     print(df.to_markdown(tablefmt="grid"))
 ```
 This function prints the syntax analysis process of an LL(1) parser. It creates a DataFrame using the history of the stack and input symbols, displaying them step by step. If the string is accepted, it shows "Cadena aceptada" (String accepted); if rejected, it shows "Cadena rechazada" (String rejected). Empty cells in the table are replaced with dashes ('-'). The result is printed in a markdown table format for better visualization.
->>>>>>> 237db5082b5379100767915817e93903f7376ea3
 
 ---
 
@@ -350,14 +314,6 @@ This function prints the syntax analysis process of an LL(1) parser. It creates 
 
 ### Explanation of the Parser 📚
 
-<<<<<<< HEAD
-The SLR(1) parser is a **bottom-up** parsing method that reads input from **left to right** and constructs the parse tree from **the leaves (bottom)** to the **root**. It uses one lookahead symbol and considers the **Follow** sets of the grammar for transitions.
-
-### Code for Developing It 🧑‍💻
-
-Here you would add your code that implements the SLR(1) parsing algorithm.
-
-=======
 The SLR (Simple LR) parser is a **bottom-up** parsing method that processes the input **left to right**, constructing the parse tree **from bottom to top**. It uses **one lookahead symbol** to decide which production rule to apply or whether to reduce a production. The SLR parser is more powerful than the LL(1) parser because it can handle a broader range of grammars, including some that are not suitable for LL(1) parsing, but it still relies on a single lookahead symbol to make parsing decisions.
 
 $$
@@ -686,4 +642,3 @@ def print_tree_LL(derivationHistory, startSymbolGrammar):
     print("--------------------------------------------------")
     #Nodos
 ```
->>>>>>> 237db5082b5379100767915817e93903f7376ea3
